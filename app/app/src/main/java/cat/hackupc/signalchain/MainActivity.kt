@@ -11,8 +11,9 @@ import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import cat.hackupc.signalchain.model.SharedData
-import cat.hackupc.signalchain.sync.BluetoothSyncService
+import cat.hackupc.signalchain.sync.BluetoothLeService
 import cat.hackupc.signalchain.repository.FlightRepository
 import cat.hackupc.signalchain.repository.PersonRepository
 import cat.hackupc.signalchain.repository.AlertRepository
@@ -81,28 +82,21 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val service = BluetoothSyncService(
+        val service = BluetoothLeService(
             context = this,
-            bluetoothAdapter = bluetoothAdapter,
-            getLocalData = {
-                SharedData(
-                    FlightRepository.flights,
-                    PersonRepository.people,
-                    AlertRepository.alerts
-                )
-            },
-            onDataReceived = { received ->
-                FlightRepository.merge(received.flights)
-                PersonRepository.merge(received.people)
-                AlertRepository.merge(received.alerts)
-
-                FlightListActivity.refreshData()
-                PersonListActivity.refreshData()
-                AlertListActivity.refreshData()
-            }
+            bluetoothAdapter
         )
+
         Log.d("BluetoothDebug", "Bluetooth enabled: ${bluetoothAdapter.isEnabled}")
-        service.start()
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.BLUETOOTH_SCAN
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        service.startScan()
     }
 
     override fun onRequestPermissionsResult(

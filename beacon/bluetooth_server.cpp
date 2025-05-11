@@ -4,12 +4,23 @@
 
 #include "bluetooth_server.hpp"
 
+class ServerCallbacks : public BLEServerCallbacks {
+  void onConnect(BLEServer *pServer) {
+    Serial.println("Client connected");
+  }
+
+  void onDisconnect(BLEServer *pServer) {
+    Serial.println("Client disconnected");
+  }
+};
+
 BluetoothServer::BluetoothServer() {}
 
 void BluetoothServer::init() {
   BLEDevice::init("ESP32_BLE");
 
   m_server = BLEDevice::createServer();
+  m_server->setCallbacks(new ServerCallbacks());
 
   m_service = m_server->createService(SERVICE_UUID);
 
